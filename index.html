@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10131b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Workout">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Workout — Tập luyện cá nhân</title>
+<style>
+:root{color-scheme:dark;--bg:#10131b;--panel:#191e2a;--panel2:#222938;--muted:#9ba6b8;--text:#f4f6fb;--accent:#a6f36b;--line:#30394a;--orange:#ffbd69}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+main{width:min(100%,560px);margin:auto;padding:22px 16px calc(34px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.eyebrow{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+h1{font-size:28px;line-height:1.1;margin:5px 0}.sub{color:var(--muted);font-size:13px}.pill{background:#293443;color:var(--accent);padding:7px 11px;border-radius:99px;font-size:12px;font-weight:700}
+.progress-wrap{background:var(--panel2);height:7px;border-radius:9px;overflow:hidden;margin:12px 0 7px}.progress{height:100%;width:0;background:var(--accent);transition:width .25s}
+.stats{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;margin:14px 0}
+.section-label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.exercise{font-size:22px;font-weight:800;margin:7px 0 3px}.muscle{color:var(--accent);font-size:13px;font-weight:700}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.meta span{background:var(--panel2);padding:7px 10px;border-radius:10px;font-size:12px;color:#d7deea}
+.sets{display:flex;gap:8px;margin-top:15px}.set-dot{height:7px;flex:1;border-radius:8px;background:#394354}.set-dot.done{background:var(--accent)}
+.timer-card{text-align:center;background:linear-gradient(145deg,#222b39,#171d28)}
+.timer{font-size:58px;line-height:1.1;font-weight:850;font-variant-numeric:tabular-nums;letter-spacing:-2px;margin:10px 0}
+.timer-caption{color:var(--muted);font-size:13px}.next{border-top:1px solid var(--line);margin-top:16px;padding-top:14px;text-align:left}
+.next strong{display:block;margin-top:4px;font-size:15px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}
+button{border:0;border-radius:13px;padding:14px 12px;font:700 14px system-ui;cursor:pointer}
+.primary{background:var(--accent);color:#17200f}.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}button:disabled{opacity:.4;cursor:not-allowed}
+.list-head{display:flex;justify-content:space-between;align-items:center;margin:24px 2px 10px}.list-head h2{font-size:17px;margin:0}.list-head span{font-size:12px;color:var(--muted)}
+.item{display:flex;gap:12px;align-items:center;padding:13px 12px;border-bottom:1px solid var(--line);background:var(--panel)}
+.item:first-of-type{border-radius:14px 14px 0 0}.item:last-child{border-bottom:0;border-radius:0 0 14px 14px}
+.num{width:27px;height:27px;border-radius:9px;background:var(--panel2);display:grid;place-items:center;color:var(--muted);font-size:12px;font-weight:800;flex:none}
+.item-info{min-width:0;flex:1}.item-name{font-size:13px;font-weight:750}.item-muscle{font-size:11px;color:var(--muted);margin-top:2px}.item-side{text-align:right;color:var(--muted);font-size:11px;white-space:nowrap}.item.current{outline:1px solid var(--accent);background:#202a2b}.item.finished .num{background:var(--accent);color:#17200f}
+.notice{font-size:12px;color:var(--muted);margin:14px 3px 0}
+
+.settings-title{font-size:16px;font-weight:800;margin:0 0 12px}
+.file-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input[type=file]{width:100%;font:12px system-ui;color:var(--muted);background:var(--panel2);padding:10px;border-radius:11px;border:1px solid var(--line)}
+.setting-note{font-size:11px;color:var(--muted);margin:9px 0 0}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;font-size:13px}
+.toggle-row input{width:19px;height:19px;accent-color:var(--accent)}
+.small-btn{padding:10px 12px;font-size:12px}
+
+@media(min-width:500px){main{padding-top:32px}}
+</style>
+</head>
+<body>
+<main>
+<header><div><div class="eyebrow">PERSONAL WORKOUT</div><h1>Buổi tập hôm nay</h1><div class="sub">Theo dõi từng set · nghỉ tự động</div></div><div class="pill">18 bài · 36 sets</div></header>
+<div class="progress-wrap"><div class="progress" id="progress"></div></div>
+<div class="stats"><span id="progressText">0 / 36 sets hoàn thành</span><span id="exerciseText">Bài 1 / 18</span></div>
+
+<section class="card" aria-live="polite">
+ <div class="section-label">ĐANG TẬP · <span id="setLabel">SET 1 / 2</span></div>
+ <div class="exercise" id="exerciseName">Incline Smith Bench Press</div>
+ <div class="muscle" id="muscleName">CHEST</div>
+ <div class="meta"><span id="setMeta">Set 1 trên 2</span><span id="restMeta">Nghỉ sau set: 4 phút</span></div>
+ <div class="sets" id="setDots"><i class="set-dot"></i><i class="set-dot"></i></div>
+</section>
+
+<section class="card timer-card" id="timerCard" aria-live="polite">
+ <div class="section-label" id="timerTitle">SẴN SÀNG</div>
+ <div class="timer" id="timer">04:00</div>
+ <div class="timer-caption" id="timerCaption">Hoàn thành set để bắt đầu giờ nghỉ</div>
+ <div class="next"><div class="section-label">TIẾP THEO</div><strong id="nextName">Incline Smith Bench Press · Set 1</strong></div>
+ <div class="actions">
+  <button class="primary" id="completeBtn">Hoàn thành set</button>
+  <button class="secondary" id="pauseBtn" disabled>Tạm dừng</button>
+ </div>
+ <div class="actions" style="margin-top:9px">
+  <button class="secondary" id="skipBtn" disabled>Bỏ qua nghỉ</button>
+  <button class="secondary" id="resetBtn">Làm lại buổi tập</button>
+ </div>
+</section>
+
+
+<section class="card" id="soundSettings">
+ <div class="settings-title">Âm thanh & rung</div>
+ <div class="section-label">CHUÔNG KHI HẾT GIỜ NGHỈ</div>
+ <div style="height:8px"></div>
+ <input type="file" id="ringtoneFile" accept="audio/*">
+ <div class="file-row" style="margin-top:9px">
+  <button class="secondary small-btn" id="testSoundBtn">Nghe thử chuông</button>
+  <button class="secondary small-btn" id="clearSoundBtn">Dùng chuông mặc định</button>
+ </div>
+ <div class="setting-note" id="soundStatus">Chưa chọn file âm thanh. App sẽ dùng chuông mặc định.</div>
+ <label class="toggle-row">Rung khi bấm nút <input type="checkbox" id="vibrationToggle" checked></label>
+ <label class="toggle-row">Rung khi hết giờ nghỉ <input type="checkbox" id="timerVibrationToggle" checked></label>
+ <div class="setting-note">Bạn có thể chọn MP3, M4A, WAV hoặc âm thanh được hỗ trợ trên điện thoại. Cho phép rung tùy theo trình duyệt và thiết bị.</div>
+</section>
+
+<div class="list-head"><h2>Danh sách bài tập</h2><span>Thứ tự buổi tập</span></div>
+<div id="workoutList"></div>
+<p class="notice">Để cài như ứng dụng: triển khai thư mục này lên HTTPS, sau đó chọn “Thêm vào màn hình chính” trong menu trình duyệt. Hãy chọn chuông sau khi mở app trên điện thoại.</p><p class="notice">Hãy chọn mức tạ phù hợp và ưu tiên kỹ thuật đúng. Bộ đếm nghỉ bắt đầu sau mỗi set; set tiếp theo chỉ bắt đầu khi bạn nhấn nút.</p>
+</main>
+<script>
+const exercises = [
+ ["Chest","Incline Smith Bench Press",2,240],
+ ["Chest","Flat Smith Bench Press",2,240],
+ ["Chest","Chest Fly",2,240],
+ ["Back","Lat Pulldown",2,240],
+ ["Back","T-Bar Row",2,240],
+ ["Back","Lat Pullover",2,240],
+ ["Shoulders","Shoulder Press",2,120],
+ ["Shoulders","Lateral Raise",2,120],
+ ["Rear Delts","Rear Delt Fly",2,120],
+ ["Triceps","Triceps Extension / Pushdown",2,120],
+ ["Biceps","Biceps Curl",2,120],
+ ["Biceps / Forearms","Hammer Curl",2,120],
+ ["Forearms","Forearm Pronation",2,60],
+ ["Forearms","Forearm Supination",2,60],
+ ["Forearms","Wrist Curl",2,60],
+ ["Forearms","Reverse Wrist Curl",2,60],
+ ["Forearms","Radial Deviation",2,60],
+ ["Forearms","Ulnar Deviation",2,60]
+];
+const totalSets=exercises.reduce((n,e)=>n+e[2],0);
+let index=0,set=1,completed=0,remaining=240,interval=null,resting=false,paused=false,finished=false;
+const $=id=>document.getElementById(id);
+const fmt=s=>`${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+
+let customRingtoneUrl=null;
+const ringtoneInput=$("ringtoneFile"), soundStatus=$("soundStatus");
+const defaultBeep=()=>{
+ try{
+  const Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx)return;
+  const ctx=new Ctx(), osc=ctx.createOscillator(), gain=ctx.createGain();
+  osc.type="sine";osc.frequency.setValueAtTime(880,ctx.currentTime);
+  osc.frequency.setValueAtTime(660,ctx.currentTime+0.22);
+  gain.gain.setValueAtTime(0.0001,ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.22,ctx.currentTime+0.025);
+  gain.gain.setTargetAtTime(0.0001,ctx.currentTime+0.45,0.08);
+  osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+0.75);
+  osc.onended=()=>ctx.close();
+ }catch(e){}
+};
+function playRingtone(){
+ if(customRingtoneUrl){
+  const audio=new Audio(customRingtoneUrl);audio.volume=1;
+  audio.play().catch(()=>{defaultBeep();soundStatus.textContent="Không phát được file đã chọn; đang dùng chuông mặc định."});
+ }else defaultBeep();
+}
+function vibrate(pattern=[35]){
+ if($("vibrationToggle")?.checked && navigator.vibrate) navigator.vibrate(pattern);
+}
+ringtoneInput.addEventListener("change",()=>{
+ const file=ringtoneInput.files?.[0];if(!file)return;
+ if(customRingtoneUrl)URL.revokeObjectURL(customRingtoneUrl);
+ customRingtoneUrl=URL.createObjectURL(file);
+ soundStatus.textContent=`Đã chọn: ${file.name}`;
+});
+$("testSoundBtn").addEventListener("click",()=>{playRingtone();vibrate([35,45,35]);});
+$("clearSoundBtn").addEventListener("click",()=>{
+ if(customRingtoneUrl)URL.revokeObjectURL(customRingtoneUrl);
+ customRingtoneUrl=null;ringtoneInput.value="";
+ soundStatus.textContent="Đang dùng chuông mặc định.";playRingtone();
+});
+document.addEventListener("click",ev=>{
+ const btn=ev.target.closest("button");
+ if(btn && !btn.disabled && $("vibrationToggle").checked) vibrate([22]);
+});
+if("serviceWorker" in navigator && location.protocol!=="file:"){
+ window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+
+function nextPosition(){
+ if(set<exercises[index][2]) return {i:index,s:set+1};
+ if(index<exercises.length-1) return {i:index+1,s:1};
+ return null;
+}
+function render(){
+ const e=exercises[index]; const next=nextPosition();
+ $("exerciseName").textContent=e[1];$("muscleName").textContent=e[0].toUpperCase();
+ $("setLabel").textContent=`SET ${set} / ${e[2]}`;$("setMeta").textContent=`Set ${set} trên ${e[2]}`;
+ $("restMeta").textContent=`Nghỉ sau set: ${e[3]/60} phút`;
+ $("setDots").innerHTML=Array.from({length:e[2]},(_,n)=>`<i class="set-dot ${n<set-1?"done":""}"></i>`).join("");
+ $("progress").style.width=`${completed/totalSets*100}%`;
+ $("progressText").textContent=`${completed} / ${totalSets} sets hoàn thành`;
+ $("exerciseText").textContent=`Bài ${index+1} / ${exercises.length}`;
+ $("nextName").textContent=next?`${exercises[next.i][1]} · Set ${next.s}`:"Hoàn thành toàn bộ buổi tập";
+ $("workoutList").innerHTML=exercises.map((x,i)=>`<div class="item ${i===index&&!finished?"current":i<index||finished?"finished":""}"><div class="num">${i<index||finished?"✓":i+1}</div><div class="item-info"><div class="item-name">${x[1]}</div><div class="item-muscle">${x[0]}</div></div><div class="item-side">${x[2]} sets<br>${x[3]/60} phút nghỉ</div></div>`).join("");
+ $("completeBtn").disabled=resting||finished;
+ $("pauseBtn").disabled=!resting;$("skipBtn").disabled=!resting;
+}
+function stopTimer(){if(interval){clearInterval(interval);interval=null}}
+function startRest(seconds){
+ remaining=seconds;resting=true;paused=false;stopTimer();
+ $("timerTitle").textContent="THỜI GIAN NGHỈ";$("timerCaption").textContent="Nghỉ ngơi, chuẩn bị cho set tiếp theo";
+ $("pauseBtn").textContent="Tạm dừng";$("timer").textContent=fmt(remaining);
+ interval=setInterval(()=>{
+  if(paused)return;
+  remaining--; $("timer").textContent=fmt(remaining);
+  if(remaining<=0){stopTimer();playRingtone();if($("timerVibrationToggle").checked&&navigator.vibrate)navigator.vibrate([180,90,180,90,350]);$("timerTitle").textContent="HẾT GIỜ NGHỈ";$("timerCaption").textContent="Bạn đã sẵn sàng? Nhấn bắt đầu set tiếp theo."; $("completeBtn").disabled=false;$("completeBtn").textContent="Bắt đầu set tiếp theo";$("pauseBtn").disabled=true;$("skipBtn").disabled=true;resting=false;}
+ },1000);
+ $("completeBtn").disabled=true;$("completeBtn").textContent="Đang nghỉ...";
+ $("pauseBtn").disabled=false;$("skipBtn").disabled=false;
+}
+function completeOrContinue(){
+ if(finished)return;
+ if(resting)return;
+ if($("timerTitle").textContent==="HẾT GIỜ NGHỈ"){
+  $("timerTitle").textContent="SẴN SÀNG";$("timerCaption").textContent="Bắt đầu set tiếp theo khi bạn sẵn sàng";
+  $("completeBtn").textContent="Hoàn thành set";$("timer").textContent="00:00";return;
+ }
+ if($("timerTitle").textContent==="THỜI GIAN NGHỈ")return;
+ // If the rest ended, this click starts the next set; otherwise it records the current set.
+ if($("timerTitle").textContent==="SẴN SÀNG" && completed>0 && $("timerCaption").textContent.startsWith("Bắt đầu set tiếp theo")){
+  $("timerCaption").textContent="Hoàn thành set để bắt đầu giờ nghỉ";$("completeBtn").textContent="Hoàn thành set";return;
+ }
+ completed++;
+ const next=nextPosition();
+ if(!next){finished=true;stopTimer();$("timerTitle").textContent="HOÀN THÀNH";$("timer").textContent="✓";$("timerCaption").textContent="Bạn đã hoàn thành toàn bộ buổi tập!";$("nextName").textContent="Tất cả 18 bài tập đã hoàn thành";$("completeBtn").textContent="Đã hoàn thành";$("completeBtn").disabled=true;$("pauseBtn").disabled=true;$("skipBtn").disabled=true;renderFinished();return;}
+ startRest(exercises[index][3]);render();
+}
+function renderFinished(){ $("progress").style.width="100%";$("progressText").textContent=`${totalSets} / ${totalSets} sets hoàn thành`;$("exerciseText").textContent="Buổi tập hoàn tất";$("workoutList").innerHTML=exercises.map((x,i)=>`<div class="item finished"><div class="num">✓</div><div class="item-info"><div class="item-name">${x[1]}</div><div class="item-muscle">${x[0]}</div></div><div class="item-side">Hoàn tất</div></div>`).join("");}
+function advance(){
+ const n=nextPosition();if(!n)return;
+ index=n.i;set=n.s;resting=false;paused=false;remaining=0;
+ $("timerTitle").textContent="SẴN SÀNG";$("timer").textContent=fmt(exercises[index][3]);
+ $("timerCaption").textContent="Hoàn thành set để bắt đầu giờ nghỉ";$("completeBtn").textContent="Hoàn thành set";
+ render();
+}
+$("completeBtn").addEventListener("click",()=>{
+ if($("timerTitle").textContent==="HẾT GIỜ NGHỈ"||($("timerTitle").textContent==="SẴN SÀNG"&&$("timerCaption").textContent.startsWith("Bắt đầu set tiếp theo"))){advance();return;}
+ completeOrContinue();
+});
+$("pauseBtn").addEventListener("click",()=>{paused=!paused;$("pauseBtn").textContent=paused?"Tiếp tục":"Tạm dừng";$("timerCaption").textContent=paused?"Bộ đếm đang tạm dừng":"Nghỉ ngơi, chuẩn bị cho set tiếp theo";});
+$("skipBtn").addEventListener("click",()=>{stopTimer();resting=false;$("timerTitle").textContent="HẾT GIỜ NGHỈ";$("timer").textContent="00:00";$("timerCaption").textContent="Bạn đã sẵn sàng? Nhấn bắt đầu set tiếp theo.";$("completeBtn").disabled=false;$("completeBtn").textContent="Bắt đầu set tiếp theo";$("pauseBtn").disabled=true;$("skipBtn").disabled=true;});
+$("resetBtn").addEventListener("click",()=>{if(!confirm("Bắt đầu lại toàn bộ buổi tập?"))return;stopTimer();index=0;set=1;completed=0;remaining=240;resting=false;paused=false;finished=false;$("timerTitle").textContent="SẴN SÀNG";$("timer").textContent="04:00";$("timerCaption").textContent="Hoàn thành set để bắt đầu giờ nghỉ";$("completeBtn").textContent="Hoàn thành set";$("completeBtn").disabled=false;render();});
+render();
+</script>
+</body>
+</html>
